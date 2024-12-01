@@ -116,13 +116,3 @@
 93.158.213.92
 95.217.167.10
 96.126.98.54
-ec2-18-191-163-220.us-east-2.compute.amazonaws.com.
-opentracker.internetwarriors.net.
-origin.hostnode.cn.
-pubt.in.
-tardis.tiny-vps.com.
-tr-fallback.nyacat.uk.
-tracker.dler.org.
-tracker.renfei.eu.org.
-trackermore.dler.org.
-trkr.duckdns.org.
