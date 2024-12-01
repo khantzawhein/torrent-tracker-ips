@@ -20,12 +20,12 @@ jobs:
 
       # Download the source file with trackers
       - name: Download source file with trackers
-        run: curl -s -o trackers_all.txt https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all.txt
+        run: curl -s -o trackers_all_from_src1.txt https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all.txt
 
       - name: Concatenate custom hosts
         run: |
           # Concatenate custom_hosts.txt to trackers_all.txt
-          cat custom_hosts.txt trackers_all.txt > trackers_all.txt
+          cat custom_hosts.txt trackers_all_from_src1.txt > trackers_all.txt
           echo "Combined trackers_all.txt with custom_hosts.txt"
           cat trackers_all.txt
 
