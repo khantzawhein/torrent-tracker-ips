@@ -1,5 +1,7 @@
-*
-!.github
-!extracted_ips.txt
-!.gitignore
-!.custom_hosts.txt
+extracted_ips_raw.txt
+extracted_ips_unfiltered.txt
+host_to_ips.txt
+hostnames.txt
+trackers_all.txt
+trackers_all_from_src1.txt
+trackers_all_ip.txt
