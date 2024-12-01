@@ -115,5 +115,5 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add extracted_ips.txt
-          git commit -m "Update extracted IPs" || echo "No changes to commit" && exit 0
+          git commit -m "Update extracted IPs" || (echo "No changes to commit" && exit 0)
           git push
