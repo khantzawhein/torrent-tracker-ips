@@ -3,7 +3,7 @@ name: Extract IPs from URL
 on:
   workflow_dispatch:
   schedule:
-    - cron: '*/30 * * * *' # Runs daily at midnight (adjust as needed)
+    - cron: "*/30 * * * *" # Runs daily at midnight (adjust as needed)
 
 jobs:
   extract-ips:
@@ -30,18 +30,18 @@ jobs:
           cat trackers_all.txt
 
       # Extract only the IPs from trackers_all_ip.txt
-      - name: Extract IP addresses from the file
+      - name: Extract IP addresses from the IP file
         run: |
-          grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' trackers_all_ip.txt > extracted_ips.txt
+          grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' trackers_all_ip.txt >> extracted_ips_raw.txt
           echo "Extracted IPs from file:"
-          cat extracted_ips.txt
+          cat extracted_ips_raw.txt
 
       # Extract hostnames from the URLs and resolve to IP addresses
       - name: Extract IP addresses from hosts in trackers_all.txt
         run: |
           echo "Extracting IPs from the host list..."
-          
-          # Extract hostnames from both http:// and udp:// URLs
+
+          # Extract hostnames from :// URLs
           grep -oP '(?<=://)[^:/]+' trackers_all.txt > hostnames.txt
 
           # Resolve each hostname to  IP addresses and save it
@@ -54,7 +54,7 @@ jobs:
                 # Check if the resolved IP is a valid IPv4 address
                 if [[ "$ip" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
                   echo "$ip"
-                  echo "$ip" >> new_extracted_ips.txt
+                  echo "$ip" >> host_to_ips.txt
                 else
                   echo "Skipping non-IP value: $ip"
                 fi
@@ -64,12 +64,27 @@ jobs:
             fi
           done < hostnames.txt
 
-      # Combine new IPs with previous ones, ensuring uniqueness
-      - name: Combine and ensure uniqueness of IPs
+      # Combine new IPs with host to IP mappings
+
+      - name: Combine IPs
         run: |
           # Combine new extracted IPs with the previous list and ensure uniqueness
-          cat extracted_ips.txt new_extracted_ips.txt | sort | uniq > extracted_ips.txt
-          echo "Combined unique IPs:"
+          cat extracted_ips_raw.txt host_to_ips.txt > extracted_ips_unfiltered.txt
+          echo "Combined unfiltered unique IPs:"
+          cat extracted_ips_unfiltered.txt
+
+      - name: Filter Private IPs
+        run: |
+          # Filter out private IPs
+          grep -vE '^(10\.|172\.(1[6-9]|2[0-9]|3[01])\.|192\.168\.|127\.|169\.254\.|224\.|239\.|240\.|255\.)' extracted_ips_unfiltered.txt >> extracted_ips.txt
+          echo "Filtered out private IPs:"
+          cat extracted_ips.txt
+
+      # Ensure uniqueness of the extracted IPs
+      - name: Ensure uniqueness of extracted IPs
+        run: |
+          sort -u extracted_ips.txt -o extracted_ips.txt
+          echo "Unique extracted IPs:"
           cat extracted_ips.txt
 
       # Commit and push the combined extracted IPs file
