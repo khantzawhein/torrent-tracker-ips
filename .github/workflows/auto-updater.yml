@@ -39,17 +39,21 @@ jobs:
 
           # Resolve each hostname to  IP addresses and save it
 
-          while IFS= read -r host; do
-            ips=$(dig +short $host)
-            if [ -n "$ips" ]; then
-              echo "Resolved $host to the following IPs:"
-              for ip in $ips; do
+          ips=$(dig +short $host)
+          if [ -n "$ips" ]; then
+            echo "Resolved $host to the following IPs:"
+            for ip in $ips; do
+              # Check if the resolved IP is a valid IPv4 address
+              if [[ "$ip" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
                 echo "$ip"
                 echo "$ip" >> new_extracted_ips.txt
-              done
-            else
-              echo "Failed to resolve $host"
-            fi
+              else
+                echo "Skipping non-IP value: $ip"
+              fi
+            done
+          else
+            echo "Failed to resolve $host"
+          fi
           done < hostnames.txt
 
       # Combine new IPs with previous ones, ensuring uniqueness
