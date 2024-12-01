@@ -85,7 +85,7 @@ jobs:
         run: |
           # First filter out private IPs
           grep -vE '^(10\.|172\.(1[6-9]|2[0-9]|3[01])\.|192\.168\.|127\.|169\.254\.|224\.|239\.|240\.|255\.)' extracted_ips_unfiltered.txt > temp_ips.txt
-          
+
           # Then filter out Cloudflare IPs
           while IFS= read -r cf_range; do
             # Skip empty lines or invalid CIDR notation
@@ -111,7 +111,7 @@ jobs:
             done < temp_ips.txt
             > temp_ips.txt  # Clear the temporary file for the next iteration
           done < cloudflare_ips.txt
-          
+
           rm temp_ips.txt
           echo "Filtered IPs:"
           cat extracted_ips.txt
@@ -129,5 +129,5 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add extracted_ips.txt
-          git commit -m "Update extracted IPs" || echo "No changes to commit" && exit 0
+          git commit -m "Update extracted IPs" || (echo "No changes to commit" && exit 0)
           git push
