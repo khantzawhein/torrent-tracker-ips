@@ -13,7 +13,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Previous steps remain the same until the Filter Private IPs step
       - name: Checkout repository
         uses: actions/checkout@v3
 
@@ -66,54 +65,41 @@ jobs:
           echo "Combined unfiltered unique IPs:"
           cat extracted_ips_unfiltered.txt
 
-      - name: Download and prepare Cloudflare IP ranges
-        run: |
-          # Download Cloudflare IPv4 ranges
-          curl -s https://www.cloudflare.com/ips-v4/ > cloudflare_ips.txt
-          # Clean up the file to ensure one CIDR per line
-          sed -i 's/<[^>]*>//g' cloudflare_ips.txt
-          sed -i 's/^[[:space:]]*//g' cloudflare_ips.txt
-          sed -i 's/[[:space:]]*$//g' cloudflare_ips.txt
-          sed -i '/^$/d' cloudflare_ips.txt
-          echo "Downloaded Cloudflare IP ranges:"
-          cat cloudflare_ips.txt
-
-      - name: Install ipcalc
-        run: sudo apt-get update && sudo apt-get install -y ipcalc
+      - name: Install grepcidr
+        run: sudo apt-get update && sudo apt-get install -y grepcidr
 
       - name: Filter Private and Cloudflare IPs
         run: |
+          # Download Cloudflare IP ranges directly
+          curl -s https://www.cloudflare.com/ips-v4/ > cloudflare_ips.txt
+
           # First filter out private IPs
-          grep -vE '^(10\.|172\.(1[6-9]|2[0-9]|3[01])\.|192\.168\.|127\.|169\.254\.|224\.|239\.|240\.|255\.)' extracted_ips_unfiltered.txt > temp_ips.txt
+          grep -vE '^(10\.|172\.(1[6-9]|2[0-9]|3[01])\.|192\.168\.|127\.|169\.254\.|224\.|239\.|240\.|255\.)' extracted_ips_unfiltered.txt > temp_filtered_ips.txt
 
-          # Then filter out Cloudflare IPs
-          while IFS= read -r cf_range; do
-            # Skip empty lines or invalid CIDR notation
-            [[ -z "$cf_range" ]] && continue
-            [[ ! "$cf_range" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/[0-9]+$ ]] && continue
-            
-            # Convert CIDR to network and broadcast IPs for comparison
-            network=$(ipcalc "$cf_range" | grep "Network:" | awk '{print $2}')
-            broadcast=$(ipcalc "$cf_range" | grep "Broadcast:" | awk '{print $2}')
-            
-            # Convert IPs to numbers for comparison
-            network_num=$(echo "$network" | awk -F. '{print ($1*256^3)+($2*256^2)+($3*256)+$4}')
-            broadcast_num=$(echo "$broadcast" | awk -F. '{print ($1*256^3)+($2*256^2)+($3*256)+$4}')
-            
-            # Filter out IPs in the Cloudflare range
-            while IFS= read -r ip; do
-              ip_num=$(echo "$ip" | awk -F. '{print ($1*256^3)+($2*256^2)+($3*256)+$4}')
-              if [ "$ip_num" -lt "$network_num" ] || [ "$ip_num" -gt "$broadcast_num" ]; then
-                echo "$ip" >> extracted_ips.txt
-              else
-                echo "Filtered out Cloudflare IP: $ip"
+          # Create a temporary file for IPs to keep
+          touch keep_ips.txt
+
+          # Process each IP against Cloudflare ranges
+          while IFS= read -r ip; do
+            is_cloudflare=false
+            while IFS= read -r cf_range; do
+              if grepcidr "$cf_range" <(echo "$ip") >/dev/null 2>&1; then
+                is_cloudflare=true
+                echo "Filtered out Cloudflare IP: $ip (matched $cf_range)"
+                break
               fi
-            done < temp_ips.txt
-            > temp_ips.txt  # Clear the temporary file for the next iteration
-          done < cloudflare_ips.txt
+            done < cloudflare_ips.txt
+            
+            if [ "$is_cloudflare" = false ]; then
+              echo "$ip" >> keep_ips.txt
+            fi
+          done < temp_filtered_ips.txt
 
-          rm temp_ips.txt
-          echo "Filtered IPs:"
+          # Move kept IPs to final file
+          mv keep_ips.txt extracted_ips.txt
+          rm temp_filtered_ips.txt
+
+          echo "Final filtered IPs:"
           cat extracted_ips.txt
 
       - name: Ensure uniqueness of extracted IPs
@@ -129,5 +115,5 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add extracted_ips.txt
-          git commit -m "Update extracted IPs" || (echo "No changes to commit" && exit 0)
+          git commit -m "Update extracted IPs" || echo "No changes to commit" && exit 0
           git push
