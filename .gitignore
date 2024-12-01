@@ -2,3 +2,4 @@
 !.github
 !extracted_ips.txt
 !.gitignore
+!.custom_hosts.txt
