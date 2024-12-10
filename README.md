@@ -1,6 +1,7 @@
-# Torrent Tracker IPs Blacklist
+# Torrent Tracker IPs List
 
-This repository contains a list of known torrent tracker IPs in the file `extracted_ips.txt`. The list can be used for any purpose, including blocking public torrent trackers to reduce the risk of being flagged by copyright owners while torrenting.
+This repository contains a list of known torrent tracker IPs in the file `extracted_ips.txt` which is regularly updated every 30 minutes. 
+The list can be used for any purpose, including blocking public torrent trackers to reduce the risk of being flagged by copyright owners while torrenting.
 
 ## Contents
 
