@@ -18,7 +18,7 @@ This list was originally curated to blacklist public torrent trackers, minimizin
    cd torrent-tracker-ips-blacklist
    ```
 
-Use the extracted_ips.txt file in your network configuration or blocking rules.
+2. Use the extracted_ips.txt file in your network configuration or blocking rules.
 
 Example: Blocking IPs using iptables (Linux):
 
@@ -28,7 +28,7 @@ while read -r ip; do
 done < extracted_ips.txt
 ```
 
-Integrate into scripts or applications as needed.
+3. Integrate into scripts or applications as needed.
 
 ## Disclaimer
 
