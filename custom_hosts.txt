@@ -1,3 +1,5 @@
 https://tracker.internetwarriors.net:80/announce
 https://router.bittorrent.com:80/announce
 https://router.utorrent.com:80/announce
+https://dht.transmissionbt.com:80/announce
+https://dht.aelitis.com:80/announce
