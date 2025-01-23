@@ -1,1 +1,3 @@
 tracker.internetwarriors.net
+router.bittorrent.com
+router.utorrent.com
